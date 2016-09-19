@@ -1,4 +1,5 @@
 ## PNGDecrush
+[![Build status](https://ci.appveyor.com/api/projects/status/42q1m218ufwiknek?svg=true)](https://ci.appveyor.com/project/qmfrederik/pngdecrush)
 
 PNGDecrush is a C# library for reversing the optimization process that is applied to PNG files in an iOS project.
 
@@ -37,15 +38,17 @@ We have unit tests, and everything is stream based.
 
 A simple example of using the library:
 
-    using (FileStream input = File.OpenRead('/path/to/input.png'))
-    using (FileStream output = File.Create('/path/to/output.png'))
+```
+using (FileStream input = File.OpenRead('/path/to/input.png'))
+using (FileStream output = File.Create('/path/to/output.png'))
+{
+    try
     {
-    	try
-    	{
-    	    PNGDecrusher.Decrush(input, output);
-    	}
-    	catch (InvalidDataException)
-        {
-            // decrushing failed, either an invalid PNG or it wasn't crushed
-        }
+    	PNGDecrusher.Decrush(input, output);
     }
+    catch (InvalidDataException)
+    {
+        // decrushing failed, either an invalid PNG or it wasn't crushed
+    }
+}
+```
