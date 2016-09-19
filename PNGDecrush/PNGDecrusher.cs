@@ -13,8 +13,53 @@ namespace PNGDecrush
 {
     public class PNGDecrusher
     {
+        /// <summary>
+        /// Determines whether the <see cref="Stream"/> represents a crushed PNG image.
+        /// </summary>
+        /// <param name="input">
+        /// A <see cref="Stream"/> which contains a PNG image, which can be crushed or not.
+        /// </param>
+        /// <returns>
+        /// <see langword="true"/> if <paramref name="input"/> represents a crushed PNG image;
+        /// otherwise, <see langword="false"/>.
+        /// </returns>
+        public static bool CanDecrush(Stream input)
+        {
+            if (input == null)
+            {
+                throw new ArgumentNullException(nameof(input));
+            }
+
+            input.Seek(0, SeekOrigin.Begin);
+
+            var chunks = PNGChunkParser.ChunksFromStream(input);
+            return chunks.Any(c => c.Type == PNGChunk.ChunkType.CgBI);
+        }
+
+        /// <summary>
+        /// Decrushes a PNG image.
+        /// </summary>
+        /// <param name="input">
+        /// A <see cref="Stream"/> which represents a crushed PNG image.
+        /// </param>
+        /// <param name="output">
+        /// A <see cref="Stream"/> to which to write the decrushed PNG image.
+        /// </param>
         public static void Decrush(Stream input, Stream output)
         {
+            if (input == null)
+            {
+                throw new ArgumentNullException(nameof(input));
+            }
+
+            if (output == null)
+            {
+                throw new ArgumentNullException(nameof(output));
+            }
+
+            input.Seek(0, SeekOrigin.Begin);
+
+
             using (MemoryStream fixedChunksOutput = new MemoryStream())
             {
                 DecrushAtChunkLevel(input, fixedChunksOutput);
