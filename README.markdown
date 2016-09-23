@@ -1,5 +1,5 @@
 ## PNGDecrush
-[![Build status](https://ci.appveyor.com/api/projects/status/42q1m218ufwiknek?svg=true)](https://ci.appveyor.com/project/qmfrederik/pngdecrush)
+[![Build status](https://ci.appveyor.com/api/projects/status/42q1m218ufwiknek?svg=true)](https://ci.appveyor.com/project/qmfrederik/pngdecrush) [![NuGet Status](http://img.shields.io/nuget/v/PNGDecrush.svg?style=flat)](https://www.nuget.org/packages/PNGDecrush/)
 
 PNGDecrush is a C# library for reversing the optimization process that is applied to PNG files in an iOS project.
 
