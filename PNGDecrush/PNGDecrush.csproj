@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>netcoreapp2.0;net45;netstandard1.3</TargetFrameworks>
+    <TargetFrameworks>netstandard2.0;net45;netstandard1.3</TargetFrameworks>
     <Description>PNGDecrush is a C# library for reversing the optimization process that is applied to PNG files in an iOS project.</Description>
     <Authors>Mike Weller</Authors>
     <Company>Mike Weller</Company>
@@ -18,8 +18,8 @@
     <PackageReference Include="CoreCompat.System.Drawing" Version="1.0.0-beta006" />
   </ItemGroup>
 
-  <ItemGroup Condition="'$(TargetFramework)' == 'netcoreapp2.0'">
-    <PackageReference Include="System.Drawing.Common" Version="4.5.0-preview1-25718-03" />
+  <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
+    <PackageReference Include="System.Drawing.Common" Version="4.5.0-preview1-25914-04" />
   </ItemGroup>
 
   <ItemGroup>
