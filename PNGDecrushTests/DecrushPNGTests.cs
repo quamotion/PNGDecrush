@@ -1,17 +1,12 @@
-﻿using System;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using PNGDecrush;
-using System.IO;
-using System.Collections.Generic;
-using System.Linq;
-using System.Collections;
-using System.Text;
-using System.IO.Compression;
+﻿using System.Collections.Generic;
 using System.Drawing;
+using System.IO;
+using System.IO.Compression;
+using System.Linq;
+using Xunit;
 
 namespace PNGDecrush
 {
-    [TestClass]
     public class DecrushPNGTests
     {
         // What apple's pngcrush extension (-iphone) does:
@@ -82,22 +77,22 @@ namespace PNGDecrush
             0x00, 0x00, 0x00, 0x00, 0x49, 0x45, 0x4e, 0x44, 0xae, 0x42, 0x60, 0x82
         };
 
-        [TestMethod]
+        [Fact]
         public void TestChunksAreCorrectlyParsed()
         {
             using (MemoryStream stream = new MemoryStream(Simple10x10WhitePNG))
             {
                 PNGChunk[] chunks = PNGChunkParser.ChunksFromStream(stream).ToArray();
-                Assert.AreEqual(6, chunks.Length);
+                Assert.Equal(6, chunks.Length);
 
                 PNGChunk idatChunk = chunks[4];
-                Assert.AreEqual("IDAT", idatChunk.TypeString);
-                Assert.AreEqual(PNGChunk.ChunkType.IDAT, idatChunk.Type);
-                Assert.AreEqual(17, idatChunk.Data.Length);
+                Assert.Equal("IDAT", idatChunk.TypeString);
+                Assert.Equal(PNGChunk.ChunkType.IDAT, idatChunk.Type);
+                Assert.Equal(17, idatChunk.Data.Length);
             }
         }
 
-        [TestMethod]
+        [Fact]
         public void TestWritingChunksProducesIdenticalBytesAsInput()
         {
             byte[] input = Simple10x10WhitePNG;
@@ -110,11 +105,11 @@ namespace PNGDecrush
 
                 byte[] outputBytes = output.ToArray();
 
-                CollectionAssert.AreEqual(input, outputBytes);
+                Assert.Equal(input, outputBytes);
             }
         }
 
-        [TestMethod]
+        [Fact]
         public void TestWritingChunksAfterRecalculatingCRCProducesIdenticalBytesAsInput()
         {
             byte[] input = Simple10x10WhitePNG;
@@ -131,11 +126,11 @@ namespace PNGDecrush
 
                 byte[] outputBytes = output.ToArray();
 
-                CollectionAssert.AreEqual(input, outputBytes);
+                Assert.Equal(input, outputBytes);
             }
         }
 
-        [TestMethod]
+        [Fact]
         public void TestAppleChunkIsRemovedWhenDecrushing()
         {
             IEnumerable<PNGChunk> chunks = new List<PNGChunk>()
@@ -147,12 +142,12 @@ namespace PNGDecrush
 
             IEnumerable<PNGChunk> fixedChunks = PNGDecrusher.DecrushChunks(chunks);
 
-            Assert.AreEqual(2, fixedChunks.Count());
-            Assert.AreEqual(PNGChunk.ChunkType.IDAT, fixedChunks.ToArray()[0].Type);
-            Assert.AreEqual("IEND", fixedChunks.ToArray()[1].TypeString);
+            Assert.Equal(2, fixedChunks.Count());
+            Assert.Equal(PNGChunk.ChunkType.IDAT, fixedChunks.ToArray()[0].Type);
+            Assert.Equal("IEND", fixedChunks.ToArray()[1].TypeString);
         }
 
-        [TestMethod]
+        [Fact]
         public void TestZlibHeadersAreAddedBack()
         {
             IEnumerable<PNGChunk> chunks = PNGChunkParser.ChunksFromStream(new MemoryStream(Crushed10x10White));
@@ -171,13 +166,13 @@ namespace PNGDecrush
                 int compressionInfo = (CMF & 0xF0) >> 4;
 
                 int COMPRESSION_METHOD_DEFLATE = 8;
-                Assert.AreEqual(COMPRESSION_METHOD_DEFLATE, compressionMethod);
+                Assert.Equal(COMPRESSION_METHOD_DEFLATE, compressionMethod);
                
                 using (DeflateStream deflateStream = new DeflateStream(idatDataStream, CompressionMode.Decompress))
                 using (MemoryStream decompressedStream = new MemoryStream())
                 {
                     deflateStream.CopyTo(decompressedStream);
-                    Assert.AreEqual(410, decompressedStream.Length);
+                    Assert.Equal(410, decompressedStream.Length);
                 }
             }
         }
@@ -212,7 +207,7 @@ namespace PNGDecrush
             }
         }
 
-        [TestMethod]
+        [Fact]
         public void TestDecrushedIDATDataIsSameAsOriginalAfterDecompressing()
         {
             byte[] originalData = { 0x01, 0x02, 0x03, 0x04, 0x05, 0x06 };
@@ -225,16 +220,16 @@ namespace PNGDecrush
                 };
 
             IEnumerable<PNGChunk> decrushedChunks = PNGDecrusher.DecrushChunks(chunks);
-            Assert.AreEqual(1, decrushedChunks.Count());
+            Assert.Single(decrushedChunks);
 
             byte[] zlibData = decrushedChunks.First().Data;
             byte[] dezlibbedData = DecompressZlibBytes(zlibData);
 
-            Assert.AreEqual(originalData.Length, dezlibbedData.Length);
-            CollectionAssert.AreEqual(originalData, dezlibbedData);
+            Assert.Equal(originalData.Length, dezlibbedData.Length);
+            Assert.Equal(originalData, dezlibbedData);
         }
 
-        [TestMethod]
+        [Fact]
         public void TestMultipleIDATChunksAreTreatedAsASingleDeflatedBuffer()
         {
             byte[] originalData = { 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0xA0 };
@@ -262,8 +257,8 @@ namespace PNGDecrush
 
             byte[] dezlibbedData = DecompressZlibBytes(zlibChunksCombined);
 
-            Assert.AreEqual(originalData.Length, dezlibbedData.Length);
-            CollectionAssert.AreEqual(originalData, dezlibbedData);
+            Assert.Equal(originalData.Length, dezlibbedData.Length);
+            Assert.Equal(originalData, dezlibbedData);
         }
 
         private Bitmap BitmapFromDecrushedImage(byte[] imageData)
@@ -277,41 +272,40 @@ namespace PNGDecrush
             }
         }
 
-        [TestMethod]
+        [Fact]
         public void TestDecrushedImageCanBeLoadedByDotNetImageClasses()
         {
             using (Bitmap bitmap = BitmapFromDecrushedImage(CrushedFiftyPercentAlphaKindaBlue10x10))
             {
-                Assert.AreEqual(bitmap.Size, new Size(10, 10));
-                Assert.AreEqual(System.Drawing.Imaging.PixelFormat.Format32bppArgb, bitmap.PixelFormat);
-                Assert.AreEqual(System.Drawing.Imaging.ImageFormat.Png, bitmap.RawFormat);
+                Assert.Equal(bitmap.Size, new Size(10, 10));
+                Assert.Equal(System.Drawing.Imaging.PixelFormat.Format32bppArgb, bitmap.PixelFormat);
+                Assert.Equal(System.Drawing.Imaging.ImageFormat.Png, bitmap.RawFormat);
             }
         }
 
-        [TestMethod]
+        [Fact]
         public void TestDecrushedImagesHavePremultipliedAlphaAndPixelByteOrderFixed()
         {
             using (Bitmap bitmap = BitmapFromDecrushedImage(CrushedFiftyPercentAlphaKindaBlue10x10))
             {
-                Assert.AreEqual(bitmap.Size, new Size(10, 10));
+                Assert.Equal(bitmap.Size, new Size(10, 10));
 
                 Color pixel = bitmap.GetPixel(4, 4);
-                Assert.AreEqual(Color.FromArgb(127, 4, 50, 255), pixel);
+                Assert.Equal(Color.FromArgb(127, 4, 50, 255), pixel);
             }
         }
 
-        [TestMethod]
-        [ExpectedException(typeof(InvalidDataException))]
+        [Fact]
         public void TestExceptionOnNonAppleCrushedImages()
         {
             using (MemoryStream crushed = new MemoryStream(Simple10x10WhitePNG))
             using (MemoryStream decrushed = new MemoryStream())
             {
-                PNGDecrusher.Decrush(crushed, decrushed);
+                Assert.Throws<InvalidDataException>(() => PNGDecrusher.Decrush(crushed, decrushed));
             }
         }
 
-        [TestMethod]
+        [Fact]
         public void TestCRCCalculation()
         {
             byte[][] validPNGs = 
@@ -328,53 +322,53 @@ namespace PNGDecrush
                 {
                     uint expectedCRC = chunk.DataCRC;
                     uint recalculatedCRC = PNGDecrusher.CalculateCRCForChunk(chunk.TypeString, chunk.Data);
-                    Assert.AreEqual(expectedCRC, recalculatedCRC);
+                    Assert.Equal(expectedCRC, recalculatedCRC);
                 }
             }
         }
 
-        [TestMethod]
+        [Fact]
         public void TestSplitBufferWithSingleChunk()
         {
             byte[] data = new byte[] { 0, 1, 2 };
             IEnumerable<byte[]> chunks = PNGDecrusher.SplitBufferIntoChunks(data, 1);
-            Assert.AreEqual(1, chunks.Count());
-            CollectionAssert.AreEqual(data, chunks.First());
+            Assert.Single(chunks);
+            Assert.Equal(data, chunks.First());
         }
 
-        [TestMethod]
+        [Fact]
         public void TestSplitBufferIntoMultiple()
         {
             byte[] data = new byte[] { 0, 1, 2, 3 };
             IEnumerable<byte[]> chunks = PNGDecrusher.SplitBufferIntoChunks(data, 3);
-            Assert.AreEqual(3, chunks.Count());
+            Assert.Equal(3, chunks.Count());
 
-            CollectionAssert.AreEqual(new byte[] { 0, 1 }, chunks.ToArray()[0]);
-            CollectionAssert.AreEqual(new byte[] { 2 }, chunks.ToArray()[1]);
-            CollectionAssert.AreEqual(new byte[] { 3 }, chunks.ToArray()[2]);
+            Assert.Equal(new byte[] { 0, 1 }, chunks.ToArray()[0]);
+            Assert.Equal(new byte[] { 2 }, chunks.ToArray()[1]);
+            Assert.Equal(new byte[] { 3 }, chunks.ToArray()[2]);
         }
 
-        [TestMethod]
+        [Fact]
         public void TestSplitBufferWithRemainder()
         {
             byte[] data = new byte[] { 0, 1, 2 };
             IEnumerable<byte[]> chunks = PNGDecrusher.SplitBufferIntoChunks(data, 2);
-            Assert.AreEqual(2, chunks.Count());
+            Assert.Equal(2, chunks.Count());
 
-            CollectionAssert.AreEqual(new byte[] { 0, 1 }, chunks.ToArray()[0]);
-            CollectionAssert.AreEqual(new byte[] { 2 }, chunks.ToArray()[1]);
+            Assert.Equal(new byte[] { 0, 1 }, chunks.ToArray()[0]);
+            Assert.Equal(new byte[] { 2 }, chunks.ToArray()[1]);
         }
 
-        [TestMethod]
+        [Fact]
         public void TestSplitBufferUsesGoodChunkSizes()
         {
             byte[] data = new byte[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 };
             IEnumerable<byte[]> chunks = PNGDecrusher.SplitBufferIntoChunks(data, 3);
-            Assert.AreEqual(3, chunks.Count());
+            Assert.Equal(3, chunks.Count());
 
-            CollectionAssert.AreEqual(new byte[] { 0, 1, 2, 3, 4, 5 }, chunks.ToArray()[0]);
-            CollectionAssert.AreEqual(new byte[] { 6, 7, 8, 9, 10 }, chunks.ToArray()[1]);
-            CollectionAssert.AreEqual(new byte[] { 11, 12, 13, 14, 15 }, chunks.ToArray()[2]);
+            Assert.Equal(new byte[] { 0, 1, 2, 3, 4, 5 }, chunks.ToArray()[0]);
+            Assert.Equal(new byte[] { 6, 7, 8, 9, 10 }, chunks.ToArray()[1]);
+            Assert.Equal(new byte[] { 11, 12, 13, 14, 15 }, chunks.ToArray()[2]);
         }
     }
 }
